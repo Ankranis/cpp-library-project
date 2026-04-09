@@ -1,209 +1,217 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Library System</title>
+<title>Library Management System</title>
 
 <style>
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;
     margin: 0;
-    background: linear-gradient(135deg, #74ebd5, #9face6);
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+    background: #eef1f6;
 }
 
-.container {
-    width: 650px;
-    margin: 30px auto;
-    background: #ffffff;
-    padding: 25px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+/* SIDEBAR */
+.sidebar {
+    width: 250px;
+    background: #111827;
+    color: white;
+    padding: 20px;
 }
 
-h2 {
+.sidebar h2 {
     text-align: center;
-    color: #333;
     margin-bottom: 20px;
 }
 
-.section {
-    margin-bottom: 20px;
-    padding: 15px;
+.sidebar button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: none;
+    background: #1f2937;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.sidebar button:hover {
+    background: #4f46e5;
+}
+
+/* MAIN AREA */
+.main {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+/* CARDS */
+.card {
+    background: white;
+    padding: 20px;
     border-radius: 12px;
-    background: #f9f9f9;
-    border-left: 5px solid #6c63ff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    max-width: 500px;
+    display: none;
+    margin-bottom: 20px;
 }
 
-.section h3 {
-    margin-top: 0;
-    color: #444;
+.card.active {
+    display: block;
 }
 
 input {
-    width: 97%;
+    width: 100%;
     padding: 10px;
     margin: 6px 0;
     border-radius: 8px;
     border: 1px solid #ccc;
-    outline: none;
-    transition: 0.2s;
 }
 
-input:focus {
-    border-color: #6c63ff;
-    box-shadow: 0 0 5px rgba(108,99,255,0.4);
-}
-
-button {
+.action-btn {
     width: 100%;
-    padding: 11px;
-    margin-top: 8px;
+    padding: 10px;
+    margin-top: 10px;
+    background: #4f46e5;
+    color: white;
     border: none;
     border-radius: 8px;
-    background: linear-gradient(135deg, #6c63ff, #48c6ef);
-    color: white;
-    font-weight: bold;
     cursor: pointer;
-    transition: 0.3s;
 }
 
-button:hover {
-    opacity: 0.9;
-    transform: scale(1.02);
+.action-btn:hover {
+    background: #3730a3;
+}
+
+/* OUTPUT PANEL (CLEAN FIX) */
+#outputCard {
+    display: block;
 }
 
 #output {
-    margin-top: 20px;
+    margin-top: 10px;
     padding: 12px;
-    background: #1e1e1e;
-    color: #00ff9c;
-    border-radius: 10px;
-    white-space: pre-line;
+    background: #0f172a;
+    color: #22c55e;
+    border-radius: 8px;
+    min-height: 100px;
     font-family: monospace;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    white-space: pre-wrap;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>📚 Library Management System</h2>
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h2>📚 Library</h2>
 
-    <div class="section">
-        <h3>➕ Add Book</h3>
-        <input id="reg_add" placeholder="Registration Number">
-        <input id="id_add" placeholder="Book ID">
-        <input id="title_add" placeholder="Title">
-        <input id="author_add" placeholder="Author">
-        <button onclick="addBook()">Add Book</button>
-    </div>
-
-    <div class="section">
-        <h3>📤 Issue Book</h3>
-        <input id="reg_issue" placeholder="Registration Number">
-        <input id="id_issue" placeholder="Book ID">
-        <button onclick="issueBook()">Issue Book</button>
-    </div>
-
-    <div class="section">
-        <h3>🔄 Return Book</h3>
-        <input id="reg_return" placeholder="Registration Number">
-        <input id="id_return" placeholder="Book ID">
-        <button onclick="returnBook()">Return Book</button>
-    </div>
-
-    <div class="section">
-        <h3>📊 View Data</h3>
-        <button onclick="showAll()">Show Available Books</button>
-        <button onclick="showCount()">Show Count</button>
-    </div>
-
-    <div id="output"></div>
+    <button onclick="show('add')">Add Book</button>
+    <button onclick="show('issue')">Issue Book</button>
+    <button onclick="show('return')">Return Book</button>
+    <button onclick="showAll()">Show All</button>
+    <button onclick="showCount()">Show Count</button>
 </div>
 
-<script>
-var Module = {
-    onRuntimeInitialized: function() {}
-};
+<!-- MAIN -->
+<div class="main">
 
-function addBook() {
-    let reg = document.getElementById("reg_add").value;
-    let id = document.getElementById("id_add").value;
-    let title = document.getElementById("title_add").value;
-    let author = document.getElementById("author_add").value;
+    <!-- OUTPUT PANEL -->
+    <div class="card active" id="outputCard">
+        <h3>📊 Output Panel</h3>
+        <div id="output">Welcome to Library System</div>
+    </div>
 
-    let r = Module._malloc(reg.length + 1);
-    let i = Module._malloc(id.length + 1);
-    let t = Module._malloc(title.length + 1);
-    let a = Module._malloc(author.length + 1);
+    <!-- ADD BOOK -->
+    <div id="add" class="card">
+        <h3>Add Book</h3>
+        <input id="r1" placeholder="Registration No">
+        <input id="i1" placeholder="Book ID">
+        <input id="t1" placeholder="Title">
+        <input id="a1" placeholder="Author">
+        <button class="action-btn" onclick="addBook()">Add</button>
+    </div>
 
-    Module.stringToUTF8(reg, r, reg.length + 1);
-    Module.stringToUTF8(id, i, id.length + 1);
-    Module.stringToUTF8(title, t, title.length + 1);
-    Module.stringToUTF8(author, a, author.length + 1);
+    <!-- ISSUE BOOK -->
+    <div id="issue" class="card">
+        <h3>Issue Book</h3>
+        <input id="r2" placeholder="Registration No">
+        <input id="i2" placeholder="Book ID">
+        <button class="action-btn" onclick="issueBook()">Issue</button>
+    </div>
 
-    Module._addBook(r, i, t, a);
+    <!-- RETURN BOOK -->
+    <div id="return" class="card">
+        <h3>Return Book</h3>
+        <input id="r3" placeholder="Registration No">
+        <input id="i3" placeholder="Book ID">
+        <button class="action-btn" onclick="returnBook()">Return</button>
+    </div>
 
-    document.getElementById("output").innerText =
-        Module.UTF8ToString(Module._getOutput());
-
-    Module._free(r);
-    Module._free(i);
-    Module._free(t);
-    Module._free(a);
-}
-
-function issueBook() {
-    let reg = document.getElementById("reg_issue").value;
-    let id = document.getElementById("id_issue").value;
-
-    let r = Module._malloc(reg.length + 1);
-    let i = Module._malloc(id.length + 1);
-
-    Module.stringToUTF8(reg, r, reg.length + 1);
-    Module.stringToUTF8(id, i, id.length + 1);
-
-    Module._issueBook(r, i);
-
-    document.getElementById("output").innerText =
-        Module.UTF8ToString(Module._getOutput());
-
-    Module._free(r);
-    Module._free(i);
-}
-
-function returnBook() {
-    let reg = document.getElementById("reg_return").value;
-    let id = document.getElementById("id_return").value;
-
-    let r = Module._malloc(reg.length + 1);
-    let i = Module._malloc(id.length + 1);
-
-    Module.stringToUTF8(reg, r, reg.length + 1);
-    Module.stringToUTF8(id, i, id.length + 1);
-
-    Module._returnBook(r, i);
-
-    document.getElementById("output").innerText =
-        Module.UTF8ToString(Module._getOutput());
-
-    Module._free(r);
-    Module._free(i);
-}
-
-function showAll() {
-    document.getElementById("output").innerText =
-        Module.UTF8ToString(Module._showAll());
-}
-
-function showCount() {
-    document.getElementById("output").innerText =
-        Module.UTF8ToString(Module._showCount());
-}
-</script>
+</div>
 
 <script src="main.js"></script>
+
+<script>
+
+/* SWITCH CARDS */
+function show(id){
+    document.querySelectorAll(".card").forEach(c => c.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+
+/* ADD */
+function addBook(){
+    Module.ccall('addBook', null,
+        ['string','string','string','string'],
+        [r1.value, i1.value, t1.value, a1.value]
+    );
+    updateOutput();
+}
+
+/* ISSUE */
+function issueBook(){
+    Module.ccall('issueBook', null,
+        ['string','string'],
+        [r2.value, i2.value]
+    );
+    updateOutput();
+}
+
+/* RETURN */
+function returnBook(){
+    Module.ccall('returnBook', null,
+        ['string','string'],
+        [r3.value, i3.value]
+    );
+    updateOutput();
+}
+
+/* SHOW ALL */
+function showAll(){
+    document.getElementById("output").innerText =
+        Module.ccall('showAll','string');
+}
+
+/* SHOW COUNT */
+function showCount(){
+    document.getElementById("output").innerText =
+        Module.ccall('showCount','string');
+}
+
+/* UPDATE OUTPUT */
+function updateOutput(){
+    setTimeout(()=>{
+        document.getElementById("output").innerText =
+            Module.ccall('getOutput','string');
+    },100);
+}
+
+</script>
 
 </body>
 </html>
