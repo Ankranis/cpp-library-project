@@ -1,73 +1,112 @@
-#include <iostream>
+#include <string>
 #include <vector>
 #include <fstream>
-#include <string>
-#include <sstream>
-#include <cstring>
-#include <emscripten/emscripten.h>
 using namespace std;
-
-stringstream buffer;
-
-void printToBuffer(string text) {
-    buffer << text << endl;
-}
 
 class Book {
 private:
-    string bookID;
+    string regNo;
+    string id;
     string title;
     string author;
     string status;
-    string issuedTo;
 
 public:
-    Book() {}
-
-    Book(string id, string t, string a) {
-        bookID = id;
+    Book(string r, string i, string t, string a, string s) {
+        regNo = r;
+        id = i;
         title = t;
         author = a;
-        status = "Available";
-        issuedTo = "";
+        status = s;
     }
 
-    string getID() { return bookID; }
+    string getRegNo() { return regNo; }
+    string getId() { return id; }
     string getTitle() { return title; }
     string getAuthor() { return author; }
     string getStatus() { return status; }
-    string getIssuedTo() { return issuedTo; }
 
-    void issue(string regNo) {
-        status = "Issued";
-        issuedTo = regNo;
-    }
-
-    void returnBook() {
-        status = "Available";
-        issuedTo = "";
-    }
-
-    void display() {
-        printToBuffer(bookID + " | " + title + " | " + author + " | " + status + (status == "Issued" ? (" | " + issuedTo) : ""));
-    }
+    void setStatus(string s) { status = s; }
 };
 
 class Library {
 private:
     vector<Book> books;
     string filename = "library.txt";
+    string output = "";
 
 public:
     Library() {
         loadFromFile();
     }
 
+    void addBook(string reg, string id, string title, string author) {
+        books.push_back(Book(reg, id, title, author, "Available"));
+        saveToFile();
+        output = "Book Added Successfully";
+    }
+
+    void issueBook(string reg, string id) {
+        for (auto &b : books) {
+            if (b.getRegNo() == reg && b.getId() == id) {
+                if (b.getStatus() == "Available") {
+                    b.setStatus("Issued");
+                    saveToFile();
+                    output = "Book Issued";
+                } else {
+                    output = "Already Issued";
+                }
+                return;
+            }
+        }
+        output = "Book Not Found";
+    }
+
+    void returnBook(string reg, string id) {
+        for (auto &b : books) {
+            if (b.getRegNo() == reg && b.getId() == id) {
+                if (b.getStatus() == "Issued") {
+                    b.setStatus("Available");
+                    saveToFile();
+                    output = "Book Returned";
+                } else {
+                    output = "Already Available";
+                }
+                return;
+            }
+        }
+        output = "Book Not Found";
+    }
+
+    string showAll() {
+        string res = "";
+        for (auto &b : books) {
+            if (b.getStatus() == "Available") {
+                res += b.getRegNo() + " | " + b.getId() + " | " + b.getTitle() + " | " + b.getAuthor() + "\n";
+            }
+        }
+        return res;
+    }
+
+    string showCount() {
+        int issued = 0, available = 0;
+
+        for (auto &b : books) {
+            if (b.getStatus() == "Issued") issued++;
+            else available++;
+        }
+
+        return "Issued: " + to_string(issued) + "\nAvailable: " + to_string(available);
+    }
+
+    string getOutput() {
+        return output;
+    }
+
     void saveToFile() {
         ofstream file(filename);
         for (auto &b : books) {
-            file << b.getID() << "," << b.getTitle() << "," << b.getAuthor() << ","
-                 << b.getStatus() << "," << b.getIssuedTo() << endl;
+            file << b.getRegNo() << "," << b.getId() << "," << b.getTitle() << "," << b.getAuthor() << "," << b.getStatus() << endl;
         }
         file.close();
     }
@@ -76,93 +115,18 @@ public:
         ifstream file(filename);
         if (!file) return;
 
-        string id, title, author, status, issuedTo;
-        while (getline(file, id, ',')) {
+        string reg, id, title, author, status;
+
+        while (getline(file, reg, ',')) {
+            getline(file, id, ',');
             getline(file, title, ',');
             getline(file, author, ',');
-            getline(file, status, ',');
-            getline(file, issuedTo);
+            getline(file, status);
 
-            Book b(id, title, author);
-            if (status == "Issued") b.issue(issuedTo);
-            books.push_back(b);
+            books.push_back(Book(reg, id, title, author, status));
         }
+
         file.close();
-    }
-
-    bool exists(string id) {
-        for (auto &b : books) {
-            if (b.getID() == id) return true;
-        }
-        return false;
-    }
-
-    void addBook(string id, string title, string author) {
-        if (exists(id)) {
-            printToBuffer("Duplicate Book ID not allowed");
-            return;
-        }
-        books.push_back(Book(id, title, author));
-        saveToFile();
-        printToBuffer("Book Added");
-    }
-
-    void issueBook(string id, string regNo) {
-        for (auto &b : books) {
-            if (b.getID() == id) {
-                if (b.getStatus() == "Available") {
-                    b.issue(regNo);
-                    saveToFile();
-                    printToBuffer("Book Issued");
-                } else {
-                    printToBuffer("Book already issued");
-                }
-                return;
-            }
-        }
-        printToBuffer("Book not found");
-    }
-
-    void returnBook(string id) {
-        for (auto &b : books) {
-            if (b.getID() == id) {
-                if (b.getStatus() == "Issued") {
-                    b.returnBook();
-                    saveToFile();
-                    printToBuffer("Book Returned");
-                } else {
-                    printToBuffer("Book already available");
-                }
-                return;
-            }
-        }
-        printToBuffer("Book not found");
-    }
-
-    void search(string keyword) {
-        for (auto &b : books) {
-            if (b.getID() == keyword || b.getTitle().find(keyword) != string::npos) {
-                b.display();
-            }
-        }
-    }
-
-    void showIssued() {
-        for (auto &b : books) {
-            if (b.getStatus() == "Issued") {
-                b.display();
-            }
-        }
-    }
-
-    void showCount() {
-        int issued = 0, available = 0;
-        for (auto &b : books) {
-            if (b.getStatus() == "Issued") issued++;
-            else available++;
-        }
-        printToBuffer("Issued: " + to_string(issued));
-        printToBuffer("Available: " + to_string(available));
     }
 };
 
@@ -170,34 +134,39 @@ Library lib;
 
 extern "C" {
 
-void addBook(const char* id, const char* title, const char* author) {
-    lib.addBook(id, title, author);
+void addBook(const char* reg, const char* id, const char* title, const char* author) {
+    lib.addBook(reg, id, title, author);
 }
 
-void issueBook(const char* id, const char* regNo) {
-    lib.issueBook(id, regNo);
+void issueBook(const char* reg, const char* id) {
+    lib.issueBook(reg, id);
 }
 
-void returnBook(const char* id) {
-    lib.returnBook(id);
+void returnBook(const char* reg, const char* id) {
+    lib.returnBook(reg, id);
 }
 
-void searchBook(const char* keyword) {
-    lib.search(keyword);
+const char* showAll() {
+    static string res;
+    res = lib.showAll();
+    return res.c_str();
 }
 
-void showIssued() {
-    lib.showIssued();
+const char* showCount() {
+    static string res;
+    res = lib.showCount();
+    return res.c_str();
 }
 
-void showCount() {
-    lib.showCount();
+const char* getOutput() {
+    static string res;
+    res = lib.getOutput();
+    return res.c_str();
 }
 
-void getOutput(char* output) {
-    string temp = buffer.str();
-    strcpy(output, temp.c_str());
-    buffer.str("");
 }
 
+int main() {
+    Library temp;
+    return 0;
 }
