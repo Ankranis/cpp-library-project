@@ -34,7 +34,6 @@ private:
     string output;
 
 public:
-
     Library() {
         loadFromFile();
     }
@@ -79,12 +78,23 @@ public:
 
     string showAll() {
         string res;
+
+        res += "=== AVAILABLE BOOKS ===\n";
         for (auto &b : books) {
-            res += b.getRegNo() + " | " + b.getId() + " | " +
-                   b.getTitle() + " | " + b.getAuthor() + " | " +
-                   b.getStatus() + "\n";
+            if (b.getStatus() == "Available") {
+                res += b.getId() + " | " + b.getTitle() + " | " + b.getAuthor() + "\n";
+            }
         }
-        return res.empty() ? "No Books Found" : res;
+
+        res += "\n=== ISSUED BOOKS ===\n";
+        for (auto &b : books) {
+            if (b.getStatus() == "Issued") {
+                res += b.getId() + " | " + b.getTitle() + " | " + b.getRegNo() + "\n";
+            }
+        }
+
+        if (res.empty()) return "No Books Found";
+        return res;
     }
 
     string showCount() {
@@ -103,10 +113,9 @@ public:
         return output;
     }
 
-    /* ---------------- FILE HANDLING ---------------- */
-
     void saveToFile() {
         ofstream file(filename);
+
         for (auto &b : books) {
             file << b.getRegNo() << ","
                  << b.getId() << ","
@@ -114,6 +123,7 @@ public:
                  << b.getAuthor() << ","
                  << b.getStatus() << "\n";
         }
+
         file.close();
     }
 
@@ -167,12 +177,14 @@ const char* showCount() {
 }
 
 const char* getOutput() {
-    return lib.getOutput().c_str();
+    static string res;
+    res = lib.getOutput();
+    return res.c_str();
 }
 
 }
 
-/* ---------------- MENU DRIVEN (VIVA PART) ---------------- */
+/* ---------------- MENU DRIVEN PART (VIVA REQUIREMENT) ---------------- */
 
 int main() {
     int choice;
@@ -192,8 +204,8 @@ int main() {
         switch(choice) {
 
             case 1:
-                cout << "RegNo: "; cin >> r;
-                cout << "BookID: "; cin >> i;
+                cout << "Reg No: "; cin >> r;
+                cout << "Book ID: "; cin >> i;
                 cout << "Title: "; cin >> t;
                 cout << "Author: "; cin >> a;
                 lib.addBook(r,i,t,a);
@@ -201,15 +213,15 @@ int main() {
                 break;
 
             case 2:
-                cout << "RegNo: "; cin >> r;
-                cout << "BookID: "; cin >> i;
+                cout << "Reg No: "; cin >> r;
+                cout << "Book ID: "; cin >> i;
                 lib.issueBook(r,i);
                 cout << "Issued\n";
                 break;
 
             case 3:
-                cout << "RegNo: "; cin >> r;
-                cout << "BookID: "; cin >> i;
+                cout << "Reg No: "; cin >> r;
+                cout << "Book ID: "; cin >> i;
                 lib.returnBook(r,i);
                 cout << "Returned\n";
                 break;
