@@ -38,17 +38,18 @@ public:
         loadFromFile();
     }
 
-    void addBook(string r, string i, string t, string a) {
-        books.push_back(Book(r, i, t, a, "Available"));
+    void addBook(string i, string t, string a) {
+        books.push_back(Book("", i, t, a, "Available"));
         saveToFile();
         output = "Book Added";
     }
 
     void issueBook(string r, string i) {
         for (auto &b : books) {
-            if (b.getRegNo() == r && b.getId() == i) {
+            if (b.getId() == i) {
                 if (b.getStatus() == "Available") {
                     b.setStatus("Issued");
+                    b = Book(r, b.getId(), b.getTitle(), b.getAuthor(), "Issued");
                     saveToFile();
                     output = "Book Issued";
                 } else {
@@ -62,14 +63,11 @@ public:
 
     void returnBook(string r, string i) {
         for (auto &b : books) {
-            if (b.getRegNo() == r && b.getId() == i) {
-                if (b.getStatus() == "Issued") {
-                    b.setStatus("Available");
-                    saveToFile();
-                    output = "Book Returned";
-                } else {
-                    output = "Already Available";
-                }
+            if (b.getId() == i && b.getRegNo() == r) {
+                b.setStatus("Available");
+                b = Book("", b.getId(), b.getTitle(), b.getAuthor(), "Available");
+                saveToFile();
+                output = "Book Returned";
                 return;
             }
         }
@@ -78,23 +76,10 @@ public:
 
     string showAll() {
         string res;
-
-        res += "=== AVAILABLE BOOKS ===\n";
         for (auto &b : books) {
-            if (b.getStatus() == "Available") {
-                res += b.getId() + " | " + b.getTitle() + " | " + b.getAuthor() + "\n";
-            }
+            res += b.getId() + " | " + b.getTitle() + " | " + b.getAuthor() + " | " + b.getStatus() + "\n";
         }
-
-        res += "\n=== ISSUED BOOKS ===\n";
-        for (auto &b : books) {
-            if (b.getStatus() == "Issued") {
-                res += b.getId() + " | " + b.getTitle() + " | " + b.getRegNo() + "\n";
-            }
-        }
-
-        if (res.empty()) return "No Books Found";
-        return res;
+        return res.empty() ? "No Books" : res;
     }
 
     string showCount() {
@@ -105,8 +90,7 @@ public:
             else available++;
         }
 
-        return "Issued: " + to_string(issued) +
-               "\nAvailable: " + to_string(available);
+        return "Issued: " + to_string(issued) + "\nAvailable: " + to_string(available);
     }
 
     string getOutput() {
@@ -115,7 +99,6 @@ public:
 
     void saveToFile() {
         ofstream file(filename);
-
         for (auto &b : books) {
             file << b.getRegNo() << ","
                  << b.getId() << ","
@@ -123,8 +106,6 @@ public:
                  << b.getAuthor() << ","
                  << b.getStatus() << "\n";
         }
-
-        file.close();
     }
 
     void loadFromFile() {
@@ -141,19 +122,17 @@ public:
 
             books.push_back(Book(r,i,t,a,s));
         }
-
-        file.close();
     }
 };
 
 Library lib;
 
-/* ---------------- WASM FUNCTIONS ---------------- */
+/* ================= WASM ================= */
 
 extern "C" {
 
-void addBook(const char* r, const char* i, const char* t, const char* a) {
-    lib.addBook(r,i,t,a);
+void addBook(const char* i, const char* t, const char* a) {
+    lib.addBook(i,t,a);
 }
 
 void issueBook(const char* r, const char* i) {
@@ -181,49 +160,35 @@ const char* getOutput() {
     res = lib.getOutput();
     return res.c_str();
 }
-
 }
 
-/* ---------------- MENU DRIVEN PART (VIVA REQUIREMENT) ---------------- */
+/* ================= MENU DRIVEN ================= */
 
 int main() {
     int choice;
     string r,i,t,a;
 
     do {
-        cout << "\n===== LIBRARY MENU =====\n";
-        cout << "1. Add Book\n";
-        cout << "2. Issue Book\n";
-        cout << "3. Return Book\n";
-        cout << "4. Show All\n";
-        cout << "5. Show Count\n";
-        cout << "0. Exit\n";
-        cout << "Enter choice: ";
+        cout << "\n1.Add 2.Issue 3.Return 4.Show 5.Count 0.Exit\n";
         cin >> choice;
 
         switch(choice) {
-
             case 1:
-                cout << "Reg No: "; cin >> r;
-                cout << "Book ID: "; cin >> i;
-                cout << "Title: "; cin >> t;
-                cout << "Author: "; cin >> a;
-                lib.addBook(r,i,t,a);
-                cout << "Added\n";
+                cout << "ID Title Author:";
+                cin >> i >> t >> a;
+                lib.addBook(i,t,a);
                 break;
 
             case 2:
-                cout << "Reg No: "; cin >> r;
-                cout << "Book ID: "; cin >> i;
+                cout << "Reg ID:";
+                cin >> r >> i;
                 lib.issueBook(r,i);
-                cout << "Issued\n";
                 break;
 
             case 3:
-                cout << "Reg No: "; cin >> r;
-                cout << "Book ID: "; cin >> i;
+                cout << "Reg ID:";
+                cin >> r >> i;
                 lib.returnBook(r,i);
-                cout << "Returned\n";
                 break;
 
             case 4:

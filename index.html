@@ -1,83 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <title>Library System</title>
 
 <style>
-body {
-    margin: 0;
-    font-family: Arial;
-    display: flex;
-    height: 100vh;
-    background: #eef1f6;
+body{
+margin:0;
+font-family:Arial;
+display:flex;
+height:100vh;
+background:#eef1f6;
 }
 
-.sidebar {
-    width: 250px;
-    background: #111827;
-    color: white;
-    padding: 20px;
+.sidebar{
+width:250px;
+background:#111827;
+color:white;
+padding:20px;
 }
 
-.sidebar h2 {
-    text-align: center;
+.sidebar button{
+width:100%;
+padding:12px;
+margin:6px 0;
+border:none;
+background:#1f2937;
+color:white;
+border-radius:8px;
+cursor:pointer;
 }
 
-.sidebar button {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    background: #1f2937;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
+.sidebar button:hover{
+background:#4f46e5;
 }
 
-.sidebar button:hover {
-    background: #4f46e5;
+.main{
+flex:1;
+padding:20px;
 }
 
-.main {
-    flex: 1;
-    padding: 20px;
+.card{
+display:none;
+background:white;
+padding:20px;
+border-radius:10px;
 }
 
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    display: none;
+.active{
+display:block;
 }
 
-.card.active {
-    display: block;
-}
-
-input {
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-}
-
-button.action {
-    width: 100%;
-    padding: 10px;
-    background: #4f46e5;
-    color: white;
-    border: none;
-    border-radius: 8px;
-}
-
-#output {
-    background: #0f172a;
-    color: #22c55e;
-    padding: 12px;
-    border-radius: 8px;
-    white-space: pre-wrap;
-    font-family: monospace;
+#output{
+background:black;
+color:lime;
+padding:10px;
+margin-top:10px;
+white-space:pre-wrap;
 }
 </style>
 </head>
@@ -85,39 +63,38 @@ button.action {
 <body>
 
 <div class="sidebar">
-    <h2>Library</h2>
-    <button onclick="show('add')">Add Book</button>
-    <button onclick="show('issue')">Issue Book</button>
-    <button onclick="show('return')">Return Book</button>
-    <button onclick="showAll()">Show All</button>
-    <button onclick="showCount()">Show Count</button>
+<h2>Library</h2>
+<button onclick="show('add')">Add Book</button>
+<button onclick="show('issue')">Issue Book</button>
+<button onclick="show('return')">Return Book</button>
+<button onclick="showAll()">Show All</button>
+<button onclick="showCount()">Show Count</button>
 </div>
 
 <div class="main">
 
-<div id="output" class="card active">Welcome</div>
+<div id="output" class="card active">System Ready</div>
 
 <div id="add" class="card">
-    <h3>Add Book</h3>
-    <input id="r1" placeholder="Reg No">
-    <input id="i1" placeholder="Book ID">
-    <input id="t1" placeholder="Title">
-    <input id="a1" placeholder="Author">
-    <button class="action" onclick="addBook()">Add</button>
+<h3>Add Book</h3>
+<input id="i1" placeholder="Book ID">
+<input id="t1" placeholder="Title">
+<input id="a1" placeholder="Author">
+<button onclick="addBook()">Submit</button>
 </div>
 
 <div id="issue" class="card">
-    <h3>Issue Book</h3>
-    <input id="r2" placeholder="Reg No">
-    <input id="i2" placeholder="Book ID">
-    <button class="action" onclick="issueBook()">Issue</button>
+<h3>Issue Book</h3>
+<input id="r2" placeholder="Reg No">
+<input id="i2" placeholder="Book ID">
+<button onclick="issueBook()">Submit</button>
 </div>
 
 <div id="return" class="card">
-    <h3>Return Book</h3>
-    <input id="r3" placeholder="Reg No">
-    <input id="i3" placeholder="Book ID">
-    <button class="action" onclick="returnBook()">Return</button>
+<h3>Return Book</h3>
+<input id="r3" placeholder="Reg No">
+<input id="i3" placeholder="Book ID">
+<button onclick="returnBook()">Submit</button>
 </div>
 
 </div>
@@ -126,50 +103,51 @@ button.action {
 
 <script>
 
+function hideAll(){
+document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+}
+
 function show(id){
-    document.querySelectorAll(".card").forEach(c => c.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
+hideAll();
+document.getElementById(id).classList.add('active');
 }
 
 function addBook(){
-    Module.ccall('addBook', null,
-        ['string','string','string','string'],
-        [r1.value,i1.value,t1.value,a1.value]
-    );
-    update();
+Module.ccall('addBook',null,
+['string','string','string'],
+[i1.value,t1.value,a1.value]);
+update();
 }
 
 function issueBook(){
-    Module.ccall('issueBook', null,
-        ['string','string'],
-        [r2.value,i2.value]
-    );
-    update();
+Module.ccall('issueBook',null,
+['string','string'],
+[r2.value,i2.value]);
+update();
 }
 
 function returnBook(){
-    Module.ccall('returnBook', null,
-        ['string','string'],
-        [r3.value,i3.value]
-    );
-    update();
+Module.ccall('returnBook',null,
+['string','string'],
+[r3.value,i3.value]);
+update();
 }
 
 function showAll(){
-    document.getElementById("output").innerText =
-        Module.ccall('showAll','string');
+document.getElementById('output').innerText =
+Module.ccall('showAll','string');
 }
 
 function showCount(){
-    document.getElementById("output").innerText =
-        Module.ccall('showCount','string');
+document.getElementById('output').innerText =
+Module.ccall('showCount','string');
 }
 
 function update(){
-    setTimeout(()=>{
-        document.getElementById("output").innerText =
-            Module.ccall('getOutput','string');
-    },100);
+setTimeout(()=>{
+document.getElementById('output').innerText =
+Module.ccall('getOutput','string');
+},100);
 }
 
 </script>
